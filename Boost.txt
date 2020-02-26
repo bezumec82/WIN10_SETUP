@@ -1,0 +1,42 @@
+### PowerShell MinGW
+$Env:BOOST_VERSION="1_56_0"
+$Env:BOOST_PATH="d:\Libraries\boost_$Env:BOOST_VERSION"
+
+### MinGW-64 7.3.0
+$Env:MINGW_W64_7_3_0="c:\Program Files\mingw-w64\x86_64-7.3.0-posix-seh-rt_v5-rev0\mingw64\bin\"
+$Env:PATH=$Env:MINGW_W64_7_3_0
+echo $Env:PATH
+
+### MinGW-64 4.8.5
+$Env:MINGW_W64_4_8_5="c:\Program Files\mingw-w64\x86_64-4.8.5-posix-sjlj-rt_v4-rev0\mingw64\bin"
+$Env:PATH=$Env:MINGW_W64_4_8_5
+echo $Env:PATH
+
+g++ --version
+cd $Env:BOOST_PATH
+# .\bootstrap.bat mingw
+.\b2 -j8 toolset=gcc install --build-type=complete `
+address-model=64 architecture=x86
+
+
+### MSVC17
+$Env:MSVC17_PTH="C:\Program Files (x86)\Microsoft Visual Studio\2017\Community"
+pushd "$Env:MSVC17_PTH\Common7\Tools\"
+    cmd /c "VsDevCmd.bat&set" |
+    foreach {
+      if ($_ -match "=") {
+        $v = $_.split("="); set-item -force -path "ENV:\$($v[0])"  -value "$($v[1])"
+      }
+    }
+popd
+Write-Host "`nVisual Studio 2017 Command Prompt variables set." -ForegroundColor Yellow
+cd $Env:BOOST_PATH
+# .\bootstrap.bat msvc
+.\b2 -j8 toolset=msvc install --build-type=complete `
+address-model=32 architecture=x86
+
+### Build from Visual Studio CMD
+D:
+cd Libraries\boost_[tab]
+.\bootstrap.bat
+.\b2 -j8 toolset=msvc install --build-type=complete
